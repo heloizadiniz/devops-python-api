@@ -16,6 +16,9 @@ class TaskCreate(BaseModel):
 
 class Task(TaskCreate):
     """Tarefa devolvida pela API."""
+ 
+
+
 
     id: int
     done: bool = False
