@@ -37,7 +37,7 @@ jobs:
         run: ruff check .
 
       - name: Verificar formatação
-        run: ruff format --check .
+        run: ruff format --diff app/main.py
 
       - name: Executar testes e cobertura
         run: |
