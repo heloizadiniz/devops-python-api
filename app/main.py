@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
@@ -57,5 +58,5 @@ def complete_task(task_id: int) -> Task:
         if task.id == task_id:
             task.done = True
             return task
-    raise HTTPException(status_code=404, detail="Tarefa não encontrada")
 
+    raise HTTPException(status_code=404, detail="Tarefa não encontrada")
