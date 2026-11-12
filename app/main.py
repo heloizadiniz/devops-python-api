@@ -21,7 +21,6 @@ class Task(TaskCreate):
     id: int
     done: bool = False
 
-
 tasks: list[Task] = []
 
 
