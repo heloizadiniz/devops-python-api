@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
 
@@ -16,9 +17,6 @@ class TaskCreate(BaseModel):
 
 class Task(TaskCreate):
     """Tarefa devolvida pela API."""
- 
-
-
 
     id: int
     done: bool = False
