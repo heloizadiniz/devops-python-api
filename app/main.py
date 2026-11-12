@@ -27,10 +27,7 @@ tasks: list[Task] = []
 
 @app.get("/")
 def root() -> dict[str, str]:
-    return {
-        "message": "API DevOps em execução",
-        "docs": "/docs",
-    }
+    return {"message": "API DevOps em execução", "docs": "/docs"}
 
 
 @app.get("/health")
@@ -58,4 +55,5 @@ def complete_task(task_id: int) -> Task:
         if task.id == task_id:
             task.done = True
             return task
+
     raise HTTPException(status_code=404, detail="Tarefa não encontrada")
