@@ -7,20 +7,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
-env:
-  AWS_REGION: us-east-1
-  ECR_REPOSITORY: devops-python-api
-  ECS_SERVICE: devops-python-api-service
-  ECS_CLUSTER: devops-python-api-cluster
-  ECS_TASK_DEFINITION: .aws/task-definition.json
-  CONTAINER_NAME: devops-python-api
-
-
 permissions:
   contents: read
 
-# Em pull request, uma execução nova cancela a anterior.
-# Em push na main, nunca cancela, para não interromper um deploy no meio.
 concurrency:
   group: ci-cd-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -32,10 +21,10 @@ jobs:
 
     steps:
       - name: Obter o código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Preparar o Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version-file: .python-version
           cache: pip
@@ -61,7 +50,7 @@ jobs:
 
       - name: Guardar relatórios da execução
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: relatorios-de-teste
           path: |
@@ -77,7 +66,7 @@ jobs:
 
     steps:
       - name: Obter o código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Construir a imagem
         run: docker build --tag devops-python-api:${{ github.sha }} .
@@ -110,31 +99,28 @@ jobs:
         run: docker rm --force devops-python-api
 
   deploy:
-    name: Deploy na AWS (ECS)
+    name: Deploy na EC2
     needs: container-smoke-test
-    # Só faz deploy em push na main, nunca em pull request.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
 
     steps:
       - name: Obter o código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
-     - name: Configurar chave SSH
-  run: |
-    mkdir -p ~/.ssh
-    echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-    chmod 600 ~/.ssh/id_rsa
-    ssh-keyscan -H ${{ vars.EC2_HOST }} >> ~/.ssh/known_hosts
+      - name: Configurar chave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ vars.EC2_HOST }} >> ~/.ssh/known_hosts
 
-- name: Deploy na EC2
-  run: |
-    ssh ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << 'EOF'
-      cd devops-python-api
-
-      git pull origin main
-
-      docker compose down
-      docker compose up -d --build
-    EOF
+      - name: Deploy na EC2
+        run: |
+          ssh ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << 'EOF'
+            cd devops-python-api
+            git pull origin main
+            docker compose down
+            docker compose up -d --build
+          EOF
