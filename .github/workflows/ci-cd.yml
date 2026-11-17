@@ -94,6 +94,7 @@ jobs:
     needs: container-smoke-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    environment: DES
 
     steps:
       - name: Configurar chave SSH
@@ -101,11 +102,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H 98.93.69.138 >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ vars.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy na EC2
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@98.93.69.138 << 'EOF'
+          ssh -i ~/.ssh/id_rsa ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << 'EOF'
             cd devops-python-api
             git pull origin main
             docker compose down
