@@ -57,3 +57,29 @@ jobs:
             coverage.xml
             reports/junit.xml
           if-no-files-found: error
+          retention-days: 7
+
+  container-smoke-test:
+    name: Build e teste do container
+    needs: quality-and-tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v4
+
+      - name: Construir a imagem
+        run: docker build --tag devops-python-api:${{ github.sha }} .
+
+      - name: Iniciar o container
+        run: |
+          docker run \
+            --detach \
+            --name devops-python-api \
+            --publish 8000:8000 \
+            devops-python-api:${{ github.sha }}
+
+      - name: Verificar o endpoint de saúde
+        run: |
+          for attempt in {1..15}; do
+            if curl --fail --silent http://127.0.
