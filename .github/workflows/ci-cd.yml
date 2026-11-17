@@ -2,9 +2,11 @@ name: CI e Deploy
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -57,4 +59,55 @@ jobs:
             coverage.xml
             reports/junit.xml
           if-no-files-found: error
-          
+          retention-days: 7
+
+  container-smoke-test:
+    name: Build e teste do container
+    needs: quality-and-tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v4
+
+      - name: Construir a imagem
+        run: docker build -t devops-python-api:${{ github.sha }} .
+
+      - name: Iniciar o container
+        run: docker run -d --name devops-python-api -p 8000:8000 devops-python-api:${{ github.sha }}
+
+      - name: Verificar o endpoint de saúde
+        run: |
+          sleep 10
+          curl --fail http://127.0.0.1:8000/health
+
+      - name: Mostrar logs do container
+        if: always()
+        run: docker logs devops-python-api
+
+      - name: Remover o container
+        if: always()
+        run: docker rm -f devops-python-api
+
+  deploy:
+    name: Deploy na EC2
+    needs: container-smoke-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configurar chave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H 98.93.69.138 >> ~/.ssh/known_hosts
+
+      - name: Deploy na EC2
+        run: |
+          ssh -i ~/.ssh/id_rsa ubuntu@98.93.69.138 << 'EOF'
+            cd devops-python-api
+            git pull origin main
+            docker compose down
+            docker compose up -d --build
+          EOF
