@@ -41,4 +41,22 @@ def test_create_and_list_task() -> None:
 
 
 def test_rejects_short_title() -> None:
-    response = client.post("
+    response = client.post("/tasks", json={"title": "CI"})
+
+    assert response.status_code == 422
+
+
+def test_complete_task() -> None:
+    client.post("/tasks", json={"title": "Executar testes"})
+
+    response = client.patch("/tasks/1/done")
+
+    assert response.status_code == 200
+    assert response.json()["done"] is True
+
+
+def test_complete_unknown_task_returns_404() -> None:
+    response = client.patch("/tasks/99/done")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Tarefa não encontrada"}
