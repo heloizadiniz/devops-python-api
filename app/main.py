@@ -58,4 +58,8 @@ def create_task(data: TaskCreate) -> Task:
 @app.patch("/tasks/{task_id}/done", response_model=Task)
 def complete_task(task_id: int) -> Task:
     for task in tasks:
-        if task.id == task
+        if task.id == task_id:
+            task.done = True
+            return task
+
+    raise HTTPException(status_code=404, detail="Tarefa não encontrada")
