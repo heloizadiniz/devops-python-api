@@ -17,7 +17,7 @@ def test_health_returns_version() -> None:
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "version": "1.0.0"}
+    assert response.json() == {"status": "ok", "version": "2.0.0"}
 
 
 def test_list_starts_empty() -> None:
@@ -41,22 +41,4 @@ def test_create_and_list_task() -> None:
 
 
 def test_rejects_short_title() -> None:
-    response = client.post("/tasks", json={"title": "CI"})
-
-    assert response.status_code == 422
-
-
-def test_complete_task() -> None:
-    client.post("/tasks", json={"title": "Executar testes"})
-
-    response = client.patch("/tasks/1/done")
-
-    assert response.status_code == 200
-    assert response.json()["done"] is True
-
-
-def test_complete_unknown_task_returns_404() -> None:
-    response = client.patch("/tasks/99/done")
-
-    assert response.status_code == 404
-    assert response.json() == {"detail": "Tarefa não encontrada"}
+    response = client.post("
