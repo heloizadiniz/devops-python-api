@@ -102,13 +102,14 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ vars.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy na EC2
         run: |
-          ssh -i ~/.ssh/id_rsa ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << 'EOF'
-            cd devops-python-api
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/id_rsa \
+              ${{ vars.EC2_USER }}@${{ vars.EC2_HOST }} << 'EOF'
+            cd ~/devops-python-api
             git pull origin main
-            docker compose down
+            docker compose down || true
             docker compose up -d --build
           EOF
