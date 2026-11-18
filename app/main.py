@@ -11,7 +11,11 @@ app = FastAPI(
 class TaskCreate(BaseModel):
     """Dados recebidos para criar uma tarefa."""
 
-    title: str = Field(min_length=3, max_length=80, examples=["Estudar Actions"])
+    title: str = Field(
+        min_length=3,
+        max_length=80,
+        examples=["Estudar Actions"],
+    )
 
 
 class Task(TaskCreate):
@@ -41,7 +45,8 @@ def health() -> dict[str, str]:
 
 @app.get("/tasks", response_model=list[Task])
 def list_tasks() -> list[Task]:
-   
+    return tasks
+
 
 @app.post("/tasks", response_model=Task, status_code=status.HTTP_201_CREATED)
 def create_task(data: TaskCreate) -> Task:
@@ -53,8 +58,4 @@ def create_task(data: TaskCreate) -> Task:
 @app.patch("/tasks/{task_id}/done", response_model=Task)
 def complete_task(task_id: int) -> Task:
     for task in tasks:
-        if task.id == task_id:
-            task.done = True
-            return task
-
-    raise HTTPException(status_code=404, detail="Tarefa não encontrada")
+        if task.id == task
