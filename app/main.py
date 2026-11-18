@@ -41,8 +41,7 @@ def health() -> dict[str, str]:
 
 @app.get("/tasks", response_model=list[Task])
 def list_tasks() -> list[Task]:
-    return tasks
-
+   
 
 @app.post("/tasks", response_model=Task, status_code=status.HTTP_201_CREATED)
 def create_task(data: TaskCreate) -> Task:
@@ -58,7 +57,4 @@ def complete_task(task_id: int) -> Task:
             task.done = True
             return task
 
-    raise HTTPException(
-        status_code=404,
-        detail="Tarefa não encontrada"
-    )
+    raise HTTPException(status_code=404, detail="Tarefa não encontrada")
